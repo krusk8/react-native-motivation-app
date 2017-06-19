@@ -84,7 +84,7 @@ def enableProguardInReleaseBuilds = false
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         applicationId "io.cmichel.motivation"
@@ -96,14 +96,7 @@ android {
             abiFilters "armeabi-v7a", "x86"
         }
     }
-    signingConfigs {
-        release {
-            storeFile file(MOTIVATION_RELEASE_STORE_FILE)
-            storePassword MOTIVATION_RELEASE_STORE_PASSWORD
-            keyAlias MOTIVATION_RELEASE_KEY_ALIAS
-            keyPassword MOTIVATION_RELEASE_KEY_PASSWORD
-        }
-    }
+
     splits {
         abi {
             reset()
@@ -116,7 +109,6 @@ android {
         release {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            signingConfig signingConfigs.release
         }
     }
     // applicationVariants are e.g. debug, release
