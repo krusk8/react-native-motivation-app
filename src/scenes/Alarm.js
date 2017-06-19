@@ -4,7 +4,7 @@ import { Icon } from 'react-native-elements'
 import { connect } from 'react-redux'
 import { createTimeNew } from '../store/alarm/actions'
 import { getSchedules, getSnooze } from '../store/selectors'
-import { TimeCard, SnoozeCard } from '../components'
+import { TimeCard, SnoozeCard, Text } from '../components'
 import { primaryColor, textColor } from '../styling'
 
 const styles = {
@@ -49,6 +49,15 @@ class Alarm extends Component {
               }),
             }),
         ).isRequired,
+  };
+
+  componentDidMount() {
+    setTimeout(() => {
+      if(this.props.schedules.length === 0){
+        this.onNewPress();
+      }
+    }, 1000);
+
   }
 
   onNewPress = () => {
@@ -65,6 +74,11 @@ class Alarm extends Component {
             nextAlarmText={snooze.nextAlarmText}
             enabled={snooze.enabled}
           />
+          <Text>
+            {
+              this.props.schedules.length
+            }
+          </Text>
           {
           schedules.map(
               (schedule) => {
@@ -82,6 +96,7 @@ class Alarm extends Component {
           )
       }
         </ScrollView>
+        {/* Per il momento disabilito il pulsante "NEW"
         <View style={styles.actionButtonContainer}>
           <Icon
             containerStyle={styles.actionButton}
@@ -91,7 +106,7 @@ class Alarm extends Component {
             color={primaryColor}
             onPress={this.onNewPress}
           />
-        </View>
+        </View>*/}
       </View>
     )
   }

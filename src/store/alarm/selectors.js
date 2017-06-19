@@ -10,6 +10,7 @@ export function getSchedules(state) {
           let nextAlarmText = ''
           if (state.alarmsById[id]) {
             const timestamp = state.alarmsById[id].timestamp
+            //il testo lo inizializzo solo in fase di rendering e non nello Store
             nextAlarmText = timestamp !== null ? moment(timestamp).calendar() : ''
           }
           const retObj = {

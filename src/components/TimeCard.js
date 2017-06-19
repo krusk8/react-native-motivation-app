@@ -85,10 +85,9 @@ class TimeCard extends Component {
     const { id, enabled, time, doesRepeat, activeDayMap } = this.props
     return (
       <Card containerStyle={styles.card}>
-        <TouchableNativeFeedback onPress={this.onBackgroundPress}>
           <View style={styles.container}>
             <View style={styles.horizontalContainer} >
-              <TimeDisplay time={time} onPress={this.showTimePicker} />
+              <TimeDisplay time={time} />
               <Text style={[typography.paperFontCaption, styles.textShrink]}>
                 {
                   this.props.nextAlarmText
@@ -96,18 +95,12 @@ class TimeCard extends Component {
               </Text>
               <Switch
                 value={enabled}
-                onValueChange={this.onEnabledPress}
               />
             </View>
-            {
-              enabled &&
-              <RepeatPicker timeCardId={id} doesRepeat={doesRepeat} activeDayMap={activeDayMap} />
-            }
             <TouchableOpacity style={{ alignSelf: 'flex-end' }} onPress={this.onDeletePress}>
               <Icon name="delete" color={textColor} size={26} />
             </TouchableOpacity>
           </View>
-        </TouchableNativeFeedback>
       </Card>
     )
   }

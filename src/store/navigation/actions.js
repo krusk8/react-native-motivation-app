@@ -77,14 +77,11 @@ export function loadStateAndSetAlarms(alarmId) {
       stateString => dispatch(createAlarmStateLoad(stateString)),
     ).then(
       () => loadState('settings'),
-    )
-    .then(
+    ).then(
       stateString => dispatch(createSettingsStateLoad(stateString)),
-    )
-    .then(
+    ).then(
         NetInfo.fetch,
-    )
-    .then(
+    ).then(
       connectionInfo => dispatch(createLaunchAction(
         alarmId,
         connectionInfo,

@@ -3,6 +3,18 @@ import AppLauncher from 'react-native-app-launcher'
 import moment from 'moment'
 import { AsyncStorage } from 'react-native'
 import { dayKeys } from '../../constants'
+import {
+  TIME_CHANGED,
+  TIME_NEW,
+  TIME_DELETE,
+  SNOOZE_PRESSED,
+  SNOOZE_DELETE,
+  ENABLED_PRESSED,
+  REPEAT_PRESSED,
+  REPEAT_BUTTON_PRESSED,
+  ALARM_STATE_LOADED,
+  APP_LAUNCHED
+} from '../constants'
 
 /**
  * Given a time (hour, minute) and some scheduling information (doesRepeat, repeatMap) computes the next
@@ -89,19 +101,26 @@ export const setSnooze = (snoozeObj, timestamp) => {
 /**
  * A schedule object is the visual representation of an alarm.
  */
-export const createScheduleObj = (id, enabled, doesRepeat, hour, minute) => ({
-  id,
-  enabled: typeof enabled === 'undefined' ? true : enabled,
-  time: {
-    hour: hour || 7,
-    minute: minute || 30,
-  },
-  doesRepeat: typeof doesRepeat === 'undefined' ? true : doesRepeat,
-  repeatMap: dayKeys.reduce(
-                (obj, dayKey, i) => Object.assign(obj, { [dayKey]: i > 0 && i < 6 }),
-                {},
-            ),
-})
+export const createScheduleObj = (id, enabled, doesRepeat, hour, minute) => {
+  //TODO mettere timeInterval nei settings
+  let timeInterval = 10;
+  let randomMinutes = Math.random() * timeInterval;
+  let nextAlarm = moment().add(randomMinutes, 'minutes');
+
+  return {
+    id,
+    enabled   : typeof enabled === 'undefined' ? true : enabled,
+    time      : {
+      hour  : hour || nextAlarm.hours(),
+      minute: minute || nextAlarm.minutes(),
+    },
+    doesRepeat: typeof doesRepeat === 'undefined' ? false : doesRepeat,
+    repeatMap : dayKeys.reduce(
+      (obj, dayKey, i) => Object.assign(obj, {[dayKey]: i > 0 && i < 6}),
+      {},
+    ),
+  }
+}
 
 export const defaultState = Immutable({
   scheduleIds: [1, 2],
@@ -134,9 +153,11 @@ const saveAndReturnState = (state) => {
   return state
 }
 
+
+//START REDUCERS
 const reducer = (state = defaultState, action) => {
   switch (action.type) {
-    case 'ALARM_STATE_LOADED': {
+    case ALARM_STATE_LOADED: {
       const { stateString } = action.payload
       if (stateString == null) return saveAndReturnState(state)  // nothing stored => return default state
       try {
@@ -148,7 +169,7 @@ const reducer = (state = defaultState, action) => {
         return state
       }
     }
-    case 'APP_LAUNCHED': {
+    case APP_LAUNCHED: {
       let { alarmId } = action.payload
       if (!isNaN(alarmId)) alarmId = parseInt(alarmId, 10)
 
@@ -173,7 +194,7 @@ const reducer = (state = defaultState, action) => {
       )
       return saveAndReturnState(newState.set('alarmsById', alarmsById))
     }
-    case 'SNOOZE_PRESSED': {
+    case SNOOZE_PRESSED: {
       const { snoozeMinutes } = action.payload
       const timestamp = moment()
       timestamp.add(snoozeMinutes, 'minutes')
@@ -194,7 +215,7 @@ const reducer = (state = defaultState, action) => {
       }, { deep: true })
       return saveAndReturnState(mergedState)
     }
-    case 'SNOOZE_DELETE': {
+    case SNOOZE_DELETE: {
       const mergedState = state.merge({
         schedulesById: {
           snooze: {
@@ -212,7 +233,7 @@ const reducer = (state = defaultState, action) => {
       AppLauncher.clearAlarm('snooze')
       return saveAndReturnState(mergedState)
     }
-    case 'TIME_NEW': {
+    case TIME_NEW: {
       let scheduleIds = state.scheduleIds
       // if array is empty, pick 0, otherwise last element id + 1 (array is sorted)
       const nextId = scheduleIds.length === 0 ? 0 : scheduleIds[scheduleIds.length - 1] + 1
@@ -231,7 +252,7 @@ const reducer = (state = defaultState, action) => {
       }, { deep: true })
       return saveAndReturnState(mergedState)
     }
-    case 'TIME_CHANGED': {
+    case TIME_CHANGED: {
       const { id, hour, minute } = action.payload
       let mergedState = state.merge({
         schedulesById: {
@@ -250,7 +271,7 @@ const reducer = (state = defaultState, action) => {
       }, { deep: true })
       return saveAndReturnState(mergedState)
     }
-    case 'TIME_DELETE': {
+    case TIME_DELETE: {
       const { id } = action.payload
       const scheduleIds = state.scheduleIds.filter(val => val !== id)
       const mergedState = state.merge({
@@ -267,7 +288,7 @@ const reducer = (state = defaultState, action) => {
       AppLauncher.clearAlarm(id)
       return saveAndReturnState(mergedState)
     }
-    case 'ENABLED_PRESSED': {
+    case ENABLED_PRESSED: {
       const { id } = action.payload
       const enabled = !state.schedulesById[id].enabled
       let mergedState = state.merge({
@@ -284,7 +305,7 @@ const reducer = (state = defaultState, action) => {
       }, { deep: true })
       return saveAndReturnState(mergedState)
     }
-    case 'REPEAT_PRESSED': {
+    case REPEAT_PRESSED: {
       const { id } = action.payload
       const doesRepeat = !state.schedulesById[id].doesRepeat
       let mergedState = state.merge({
@@ -301,7 +322,7 @@ const reducer = (state = defaultState, action) => {
       }, { deep: true })
       return saveAndReturnState(mergedState)
     }
-    case 'REPEAT_BUTTON_PRESSED': {
+    case REPEAT_BUTTON_PRESSED: {
       const { id, dayKey } = action.payload
       const active = !state.schedulesById[id].repeatMap[dayKey]
       let mergedState = state.merge({
