@@ -6,7 +6,7 @@ export function getSchedules(state) {
   const scheduleIds = state.scheduleIds
   scheduleIds.forEach(
         (id) => {
-          const { enabled, time, doesRepeat, repeatMap } = state.schedulesById[id]
+          const { enabled, time, doesRepeat } = state.schedulesById[id]
           let nextAlarmText = ''
           if (state.alarmsById[id]) {
             const timestamp = state.alarmsById[id].timestamp
@@ -18,8 +18,7 @@ export function getSchedules(state) {
             enabled,
             time: formatTime(time),
             doesRepeat,
-            activeDayMap: repeatMap,
-            nextAlarmText,
+            nextAlarmText
           }
           schedules.push(retObj)
         },

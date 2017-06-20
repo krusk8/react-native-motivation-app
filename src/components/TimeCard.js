@@ -35,16 +35,7 @@ class TimeCard extends Component {
     enabled: PropTypes.bool,
     time: PropTypes.string,
     nextAlarmText: PropTypes.string,
-    doesRepeat: PropTypes.bool,
-    activeDayMap: PropTypes.shape({
-      Sun: PropTypes.bool,
-      Mon: PropTypes.bool,
-      Tue: PropTypes.bool,
-      Wed: PropTypes.bool,
-      Thu: PropTypes.bool,
-      Fri: PropTypes.bool,
-      Sat: PropTypes.bool,
-    }),
+    doesRepeat: PropTypes.bool
   }
 
   constructor(props) {
@@ -82,7 +73,7 @@ class TimeCard extends Component {
   }
 
   render() {
-    const { id, enabled, time, doesRepeat, activeDayMap } = this.props
+    const { id, enabled, time, doesRepeat } = this.props
     return (
       <Card containerStyle={styles.card}>
           <View style={styles.container}>

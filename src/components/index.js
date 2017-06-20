@@ -1,7 +1,6 @@
 import RepeatButton from './RepeatButton'
 import Banner from './Banner'
 import Modal from './Modal'
-import RepeatPicker from './RepeatPicker'
 import RingtoneModal from './RingtoneModal'
 import SnoozeCard from './SnoozeCard'
 import TabBar from './TabBar'
@@ -19,7 +18,6 @@ export {
     TextInput,
     TextInputRow,
     Banner,
-    RepeatPicker,
     RingtoneModal,
     Modal,
     SnoozeCard,

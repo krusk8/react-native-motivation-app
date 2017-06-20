@@ -44,66 +44,6 @@ describe('computeNextAlarmTimestamp', () => {
     schedule = moment()
   })
 
-  it('does not repeat same day later', () => {
-    schedule.add(1, 'minute')
-    const answer = computeNextAlarmTimestamp(schedule.hour(), schedule.minute(), false)
-    expect(answer.format('YYYY-MM-DD HH:mm')).toBe(schedule.format('YYYY-MM-DD HH:mm'))
-  })
-
-  it('does not repeat same day earlier', () => {
-    schedule.add(-1, 'minute')
-    const answer = computeNextAlarmTimestamp(schedule.hour(), schedule.minute(), false)
-    expect(answer.format('YYYY-MM-DD HH:mm')).toBe('2016-11-16 11:59')    // the next day
-  })
-
-  it('repeats empty repeatMap', () => {
-    schedule.add(-1, 'minute')
-    const repeatMap = dayKeys.reduce(
-                        (obj, dayKey) => Object.assign(obj, { [dayKey]: false }),
-                        {},
-                    )
-    const answer = computeNextAlarmTimestamp(schedule.hour(), schedule.minute(), true, repeatMap)
-    expect(answer).toBe(null)    // the next day
-  })
-
-  it('repeats same day later', () => {
-    schedule.add(1, 'minute')
-    const repeatMap = dayKeys.reduce(
-                        (obj, dayKey, i) => Object.assign(obj, { [dayKey]: i === 2 }),
-                        {},
-                    )
-    const answer = computeNextAlarmTimestamp(schedule.hour(), schedule.minute(), true, repeatMap)
-    expect(answer.format('YYYY-MM-DD HH:mm')).toBe('2016-11-15 12:01')
-  })
-
-  it('repeats same day earlier next week', () => {
-    schedule.add(-1, 'minute')
-    const repeatMap = dayKeys.reduce(
-                        (obj, dayKey, i) => Object.assign(obj, { [dayKey]: i === 2 }),
-                        {},
-                    )
-    const answer = computeNextAlarmTimestamp(schedule.hour(), schedule.minute(), true, repeatMap)
-    expect(answer.format('YYYY-MM-DD HH:mm')).toBe('2016-11-22 11:59')    // the next week
-  })
-
-  it('repeats other day first', () => {
-    const repeatMap = dayKeys.reduce(
-                        (obj, dayKey, i) => Object.assign(obj, { [dayKey]: i !== 2 }),
-                        {},
-                    )
-    const answer = computeNextAlarmTimestamp(schedule.hour(), schedule.minute(), true, repeatMap)
-    expect(answer.format('YYYY-MM-DD HH:mm')).toBe('2016-11-16 12:00')    // Wednesday this week
-  })
-
-  it('repeats Monday next week', () => {
-    const repeatMap = dayKeys.reduce(
-                        (obj, dayKey, i) => Object.assign(obj, { [dayKey]: i === 1 }),
-                        {},
-                    )
-    const answer = computeNextAlarmTimestamp(schedule.hour(), schedule.minute(), true, repeatMap)
-    expect(answer.format('YYYY-MM-DD HH:mm')).toBe('2016-11-21 12:00')    // next week Monday
-  })
-})
 
 describe('createScheduleObj', () => {
   it('has the correct structure and values', () => {
@@ -118,9 +58,6 @@ describe('createScheduleObj', () => {
     }
     const answer = createScheduleObj(5, true, false, 2, 20)
     expect(answer).toMatchObject(expected)
-    // repeatMap has correct keys
-    expect(answer.repeatMap).not.toBeUndefined()
-    expect(Object.keys(answer.repeatMap)).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
   })
 })
 

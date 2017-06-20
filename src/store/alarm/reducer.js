@@ -17,10 +17,10 @@ import {
 } from '../constants'
 
 /**
- * Given a time (hour, minute) and some scheduling information (doesRepeat, repeatMap) computes the next
+ * Given a time (hour, minute) and some scheduling information (doesRepeat) computes the next
  * Date to fire an alarm
  */
-export const computeNextAlarmTimestamp = (hour, minute, doesRepeat, repeatMap) => {
+export const computeNextAlarmTimestamp = (hour, minute, doesRepeat) => {
   const bufferSeconds = 5  // to prevent double firing
   const now = moment()
   const fire = moment()
@@ -35,25 +35,6 @@ export const computeNextAlarmTimestamp = (hour, minute, doesRepeat, repeatMap) =
     return fire
   }
 
-  // is any repeat even checked?
-  const someDayOnRepeat = Object.values(repeatMap).some(val => val)
-  if (!someDayOnRepeat) return null
-
-  const dayKeyIndex = now.day() // 0 .. 6 where 0 = Sunday
-  // is it on repeat for today?
-  if (repeatMap[dayKeys[dayKeyIndex]]) {
-    // can we still fire today?
-    if (!(fire.diff(now, 'seconds') < bufferSeconds)) return fire // fire for today is still in the future, return
-  }
-
-  // cannot fire today, find correct day of the week starting with tomorrow checking one full week inclusive
-  for (let offset = 1; offset <= 7; offset += 1) {
-    if (repeatMap[dayKeys[(dayKeyIndex + offset) % 7]]) {
-      fire.day(dayKeyIndex + offset, 'days')  // no % 7 because of the way moment.js works with last/next week
-      return fire
-    }
-  }
-
   throw new Error('computeNextAlarmTimestamp: Unreachable code')
 }
 
@@ -62,10 +43,10 @@ export const computeNextAlarmTimestamp = (hour, minute, doesRepeat, repeatMap) =
  * Returns a new alarmObj.
  */
 const setAlarm = (scheduleObj) => {
-  const { id, enabled, time, doesRepeat, repeatMap } = scheduleObj
+  const { id, enabled, time, doesRepeat } = scheduleObj
   let timestamp = null  // timestamp when the alarm goes off next
   if (enabled) {
-    const date = computeNextAlarmTimestamp(time.hour, time.minute, doesRepeat, repeatMap)
+    const date = computeNextAlarmTimestamp(time.hour, time.minute, doesRepeat)
     if (date != null) {
       timestamp = date.valueOf()
       AppLauncher.setAlarm(id, timestamp)
@@ -114,11 +95,7 @@ export const createScheduleObj = (id, enabled, doesRepeat, hour, minute) => {
       hour  : hour || nextAlarm.hours(),
       minute: minute || nextAlarm.minutes(),
     },
-    doesRepeat: typeof doesRepeat === 'undefined' ? false : doesRepeat,
-    repeatMap : dayKeys.reduce(
-      (obj, dayKey, i) => Object.assign(obj, {[dayKey]: i > 0 && i < 6}),
-      {},
-    ),
+    doesRepeat: typeof doesRepeat === 'undefined' ? false : doesRepeat
   }
 }
 
@@ -152,7 +129,27 @@ const saveAndReturnState = (state) => {
   AsyncStorage.setItem('alarm', JSON.stringify(state.asMutable()))
   return state
 }
-
+/**
+ * Fast UUID generator, RFC4122 version 4 compliant.
+ * @author Jeff Ward (jcward.com).
+ * @license MIT license
+ * @link http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/21963136#21963136
+ **/
+var UUID = (function() {
+  var self = {};
+  var lut = []; for (var i=0; i<256; i++) { lut[i] = (i<16?'0':'')+(i).toString(16); }
+  self.generate = function() {
+    var d0 = Math.random()*0xffffffff|0;
+    var d1 = Math.random()*0xffffffff|0;
+    var d2 = Math.random()*0xffffffff|0;
+    var d3 = Math.random()*0xffffffff|0;
+    return lut[d0&0xff]+lut[d0>>8&0xff]+lut[d0>>16&0xff]+lut[d0>>24&0xff]+'-'+
+      lut[d1&0xff]+lut[d1>>8&0xff]+'-'+lut[d1>>16&0x0f|0x40]+lut[d1>>24&0xff]+'-'+
+      lut[d2&0x3f|0x80]+lut[d2>>8&0xff]+'-'+lut[d2>>16&0xff]+lut[d2>>24&0xff]+
+      lut[d3&0xff]+lut[d3>>8&0xff]+lut[d3>>16&0xff]+lut[d3>>24&0xff];
+  }
+  return self;
+})();
 
 //START REDUCERS
 const reducer = (state = defaultState, action) => {
@@ -235,8 +232,8 @@ const reducer = (state = defaultState, action) => {
     }
     case TIME_NEW: {
       let scheduleIds = state.scheduleIds
-      // if array is empty, pick 0, otherwise last element id + 1 (array is sorted)
-      const nextId = scheduleIds.length === 0 ? 0 : scheduleIds[scheduleIds.length - 1] + 1
+      // if array is empty, generate UUID
+      const nextId = UUID.generate();
       scheduleIds = scheduleIds.concat(nextId)
       const obj = createScheduleObj(nextId)
       let mergedState = state.merge({
@@ -312,25 +309,6 @@ const reducer = (state = defaultState, action) => {
         schedulesById: {
           [id]: {
             doesRepeat,
-          },
-        },
-      }, { deep: true })
-      mergedState = mergedState.merge({
-        alarmsById: {
-          [id]: setAlarm(mergedState.schedulesById[id]),
-        },
-      }, { deep: true })
-      return saveAndReturnState(mergedState)
-    }
-    case REPEAT_BUTTON_PRESSED: {
-      const { id, dayKey } = action.payload
-      const active = !state.schedulesById[id].repeatMap[dayKey]
-      let mergedState = state.merge({
-        schedulesById: {
-          [id]: {
-            repeatMap: {
-              [dayKey]: active,
-            },
           },
         },
       }, { deep: true })

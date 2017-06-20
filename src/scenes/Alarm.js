@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react'
 import { View, ScrollView } from 'react-native'
 import { Icon } from 'react-native-elements'
 import { connect } from 'react-redux'
-import { createTimeNew } from '../store/alarm/actions'
+import { createTimeNew, createTimeDelete } from '../store/alarm/actions'
 import { getSchedules, getSnooze } from '../store/selectors'
 import { TimeCard, SnoozeCard, Text } from '../components'
 import { primaryColor, textColor } from '../styling'
@@ -37,16 +37,7 @@ class Alarm extends Component {
               enabled: PropTypes.bool,
               time: PropTypes.string,
               doesRepeat: PropTypes.bool,
-              nextAlarmText: PropTypes.string,
-              activeDayMap: PropTypes.shape({
-                Sun: PropTypes.bool,
-                Mon: PropTypes.bool,
-                Tue: PropTypes.bool,
-                Wed: PropTypes.bool,
-                Thu: PropTypes.bool,
-                Fri: PropTypes.bool,
-                Sat: PropTypes.bool,
-              }),
+              nextAlarmText: PropTypes.string
             }),
         ).isRequired,
   };
@@ -54,6 +45,14 @@ class Alarm extends Component {
   componentDidMount() {
     setTimeout(() => {
       if(this.props.schedules.length === 0){
+        this.onNewPress();
+      }else{
+        this.props.schedules.map((schedule) =>{
+          const {enabled} = schedule;
+          if(!enabled){
+            this.props.dispatchTimeDelete(schedule.id)
+          }
+        });
         this.onNewPress();
       }
     }, 1000);
@@ -82,7 +81,7 @@ class Alarm extends Component {
           {
           schedules.map(
               (schedule) => {
-                const { id, enabled, time, doesRepeat, nextAlarmText, activeDayMap } = schedule
+                const { id, enabled, time, doesRepeat, nextAlarmText } = schedule
                 return (<TimeCard
                   id={id}
                   key={id}
@@ -90,7 +89,6 @@ class Alarm extends Component {
                   time={time}
                   doesRepeat={doesRepeat}
                   nextAlarmText={nextAlarmText}
-                  activeDayMap={activeDayMap}
                 />)
               },
           )
@@ -119,6 +117,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   dispatchTimeNew: () => dispatch(createTimeNew()),
+  dispatchTimeDelete: id => dispatch(createTimeDelete(id))
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Alarm)
